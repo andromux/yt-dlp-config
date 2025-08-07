@@ -12,3 +12,16 @@
 bash <(curl -s https://raw.githubusercontent.com/andromux/yt-dlp-config/refs/heads/main/obtener-config)
 ```
 
+#### Opción 2. Instalación rápida (Comando corto):
+```bash
+bash <(curl -sL https://is.gd/ytdlpconfiguracion)
+```
+
+<div align="center">
+🌐 **Website:** [andromux.org](https://andromux.org/)  
+📺 **YouTube:** [@andromux](https://youtube.com/@andromux)  
+💻 **GitHub:** [github.com/andromux](https://github.com/andromux)
+
+**© 2025 Andromux** | Hecho con ❤️ para la comunidad
+
+</div>
