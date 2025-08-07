@@ -1,0 +1,153 @@
+#!/data/data/com.termux/files/usr/bin/bash
+
+# Script para descargar y configurar yt-dlp en Termux
+# Autor: AndromuxORG
+# Versión: 1.0
+
+set -e  # Salir si hay algún error
+
+# Colores para output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Función para imprimir mensajes
+print_status() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+print_success() {
+    echo -e "${GREEN}[✓]${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[!]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[✗]${NC} $1"
+}
+
+# URLs de descarga (jsdelivr CDN es más rápido generalmente)
+GITHUB_URL="https://github.com/andromux/yt-dlp-config/raw/refs/heads/main/tar/yt-dlp-config.tar.gz"
+JSDELIVR_URL="https://cdn.jsdelivr.net/gh/andromux/yt-dlp-config@main/tar/yt-dlp-config.tar.gz"
+
+# Directorio de trabajo
+HOME_DIR="$HOME"
+TEMP_FILE="/tmp/yt-dlp-config.tar.gz"
+
+print_status "Iniciando descarga de configuración yt-dlp para Termux..."
+print_status "Directorio destino: $HOME_DIR"
+
+# Función para probar conectividad
+test_url() {
+    local url="$1"
+    local name="$2"
+    print_status "Probando conectividad con $name..."
+    
+    if curl -s --head --connect-timeout 10 "$url" | head -n 1 | grep -q "200 OK"; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Determinar la mejor URL
+DOWNLOAD_URL=""
+if test_url "$JSDELIVR_URL" "jsDelivr CDN"; then
+    DOWNLOAD_URL="$JSDELIVR_URL"
+    print_success "Usando jsDelivr CDN (más rápido)"
+elif test_url "$GITHUB_URL" "GitHub directo"; then
+    DOWNLOAD_URL="$GITHUB_URL"
+    print_warning "Usando GitHub directo (jsDelivr no disponible)"
+else
+    print_error "No se puede conectar a ninguna fuente. Verifica tu conexión a internet."
+    exit 1
+fi
+
+# Crear backup si existe configuración previa
+if [ -f "$HOME_DIR/.config/yt-dlp.conf" ]; then
+    print_warning "Configuración existente encontrada"
+    BACKUP_FILE="$HOME_DIR/.config/yt-dlp.conf.backup.$(date +%Y%m%d_%H%M%S)"
+    cp "$HOME_DIR/.config/yt-dlp.conf" "$BACKUP_FILE"
+    print_success "Backup creado: $BACKUP_FILE"
+fi
+
+# Descargar archivo
+print_status "Descargando configuración desde: $DOWNLOAD_URL"
+if curl -L --progress-bar --connect-timeout 30 --max-time 300 -o "$TEMP_FILE" "$DOWNLOAD_URL"; then
+    print_success "Descarga completada"
+else
+    print_error "Error en la descarga"
+    exit 1
+fi
+
+# Verificar que el archivo se descargó correctamente
+if [ ! -f "$TEMP_FILE" ] || [ ! -s "$TEMP_FILE" ]; then
+    print_error "El archivo descargado está vacío o no existe"
+    exit 1
+fi
+
+# Verificar que es un archivo tar válido
+if ! tar -tzf "$TEMP_FILE" >/dev/null 2>&1; then
+    print_error "El archivo descargado no es un tar.gz válido"
+    rm -f "$TEMP_FILE"
+    exit 1
+fi
+
+# Mostrar contenido del archivo
+print_status "Contenido del archivo:"
+tar -tzf "$TEMP_FILE"
+
+# Cambiar al directorio HOME y descomprimir
+cd "$HOME_DIR"
+print_status "Extrayendo archivos en: $(pwd)"
+
+if tar -xzf "$TEMP_FILE"; then
+    print_success "Extracción completada"
+else
+    print_error "Error al extraer el archivo"
+    rm -f "$TEMP_FILE"
+    exit 1
+fi
+
+# Limpiar archivo temporal
+rm -f "$TEMP_FILE"
+print_success "Archivo temporal eliminado"
+
+# Verificar instalación
+if [ -f "$HOME_DIR/.config/yt-dlp.conf" ]; then
+    print_success "Configuración instalada correctamente"
+    print_status "Ubicación: $HOME_DIR/.config/yt-dlp.conf"
+    
+    # Mostrar primeras líneas de la configuración
+    print_status "Primeras líneas de la configuración:"
+    echo -e "${YELLOW}$(head -5 "$HOME_DIR/.config/yt-dlp.conf")${NC}"
+    
+    # Verificar permisos
+    chmod 644 "$HOME_DIR/.config/yt-dlp.conf"
+    print_success "Permisos ajustados correctamente"
+    
+else
+    print_error "Error: No se encontró el archivo de configuración después de la extracción"
+    exit 1
+fi
+
+# Información adicional
+echo ""
+print_success "¡Configuración completada!"
+print_status "Ahora puedes usar yt-dlp con la configuración personalizada"
+print_status "El archivo de configuración se encuentra en: ~/.config/yt-dlp.conf"
+
+# Verificar si yt-dlp está instalado
+if command -v yt-dlp >/dev/null 2>&1; then
+    print_success "yt-dlp está instalado y listo para usar"
+else
+    print_warning "yt-dlp no está instalado. Instálalo con:"
+    echo -e "${YELLOW}pkg install yt-dlp${NC}"
+fi
+
+echo ""
+print_status "Script completado exitosamente"
