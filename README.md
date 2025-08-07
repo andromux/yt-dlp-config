@@ -1,27 +1,41 @@
-### Mi configuración `yt-dlp`
+# Configuración Avanzada de `yt-dlp`
 
-- Instalación
-#### Requisitos:
+## Instalación y Requisitos Previos
 
-- Tener instalado python `pkg install python -y` Tener otorgado los permisos de almacenamientos `termux-setup-storage` y la biblioteca `pip install yt-dlp` o para actualizar la biblioteca `pip install --upgrade yt-dlp`
+### Prerrequisitos esenciales
+- **Python 3.8+**: `pkg install python -y`
+- **Permisos de almacenamiento**: `termux-setup-storage`
+- **Biblioteca yt-dlp**: 
+  ```bash
+  pip install yt-dlp
+  ```
+  Para actualizar:
+  ```bash
+  pip install --upgrade yt-dlp
+  ```
 
 > [!NOTE]
-> Pronto estaré actualizando y mejorando la configuración.
+> **Próximas actualizaciones**: Estamos trabajando en mejoras significativas para la configuración.
 
+## Métodos de Instalación
+
+### Método 1: Instalación estándar
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/andromux/yt-dlp-config/refs/heads/main/obtener-config)
 ```
 
-#### Opción 2. Instalación rápida (Comando corto):
+### Método 2: Instalación rápida (alias)
 ```bash
 bash <(curl -sL https://is.gd/ytdlpconfiguracion)
 ```
 
-<div align="center">
-🌐 <b>Website:</b> [andromux.org](https://andromux.org/)  
-📺 <b>YouTube:</b> [@andromux](https://youtube.com/@andromux)  
-💻 <b>GitHub:</b> [github.com/andromux](https://github.com/andromux)
+---
 
-**© 2025 Andromux** | Hecho con ❤️ para la comunidad
-
+<div align="center" id="footer">
+  <p>
+    <a href="https://andromux.org/" target="_blank">🌐 Website</a> | 
+    <a href="https://youtube.com/@andromux" target="_blank">📺 YouTube</a> | 
+    <a href="https://github.com/andromux" target="_blank">💻 GitHub</a>
+  </p>
+  <p><strong>© 2025 Andromux</strong> | Hecho con ❤️ para la comunidad</p>
 </div>
