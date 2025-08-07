@@ -36,7 +36,15 @@ JSDELIVR_URL="https://cdn.jsdelivr.net/gh/andromux/yt-dlp-config@main/tar/yt-dlp
 
 # Directorio de trabajo
 HOME_DIR="$HOME"
-TEMP_FILE="/tmp/yt-dlp-config.tar.gz"
+TEMP_DIR="$HOME/tmp"
+TEMP_FILE="$TEMP_DIR/yt-dlp-config.tar.gz"
+
+# Crear directorio temporal si no existe
+if [ ! -d "$TEMP_DIR" ]; then
+    print_status "Creando directorio temporal..."
+    mkdir -p "$TEMP_DIR"
+    print_success "Directorio temporal creado: $TEMP_DIR"
+fi
 
 print_status "Iniciando descarga de configuración yt-dlp para Termux..."
 print_status "Directorio destino: $HOME_DIR"
@@ -49,21 +57,15 @@ if [ -f "$HOME_DIR/.config/yt-dlp.conf" ]; then
     print_success "Backup creado: $BACKUP_FILE"
 fi
 
-# Intentar descargar desde jsdelivr CDN primero, luego GitHub
-print_status "Intentando descarga desde jsDelivr CDN..."
-if curl -L --progress-bar --connect-timeout 30 --max-time 300 -o "$TEMP_FILE" "$JSDELIVR_URL" 2>/dev/null; then
-    print_success "Descarga completada desde jsDelivr CDN"
-    DOWNLOAD_SOURCE="jsDelivr CDN"
+# Descargar directamente desde GitHub (más confiable)
+print_status "Descargando configuración desde GitHub..."
+if curl -L --progress-bar --connect-timeout 30 --max-time 300 -o "$TEMP_FILE" "$GITHUB_URL"; then
+    print_success "Descarga completada desde GitHub"
 else
-    print_warning "jsDelivr CDN no disponible, intentando GitHub directo..."
-    if curl -L --progress-bar --connect-timeout 30 --max-time 300 -o "$TEMP_FILE" "$GITHUB_URL"; then
-        print_success "Descarga completada desde GitHub directo"
-        DOWNLOAD_SOURCE="GitHub directo"
-    else
-        print_error "Error en la descarga desde ambas fuentes"
-        print_error "Verifica tu conexión a internet y que las URLs sean accesibles"
-        exit 1
-    fi
+    print_error "Error en la descarga desde GitHub"
+    print_error "URL: $GITHUB_URL"
+    print_error "Archivo temporal: $TEMP_FILE"
+    exit 1
 fi
 
 # Verificar que el archivo se descargó correctamente
@@ -72,7 +74,7 @@ if [ ! -f "$TEMP_FILE" ] || [ ! -s "$TEMP_FILE" ]; then
     exit 1
 fi
 
-print_status "Fuente de descarga utilizada: $DOWNLOAD_SOURCE"
+print_status "Descarga exitosa desde GitHub directo"
 
 # Verificar que es un archivo tar válido
 if ! tar -tzf "$TEMP_FILE" >/dev/null 2>&1; then
@@ -97,9 +99,10 @@ else
     exit 1
 fi
 
-# Limpiar archivo temporal
+# Limpiar archivo y directorio temporal
 rm -f "$TEMP_FILE"
-print_success "Archivo temporal eliminado"
+rmdir "$TEMP_DIR" 2>/dev/null || true  # No fallar si el directorio no está vacío
+print_success "Archivos temporales eliminados"
 
 # Verificar instalación
 if [ -f "$HOME_DIR/.config/yt-dlp.conf" ]; then
