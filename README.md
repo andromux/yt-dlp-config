@@ -18,9 +18,9 @@ bash <(curl -sL https://is.gd/ytdlpconfiguracion)
 ```
 
 <div align="center">
-🌐 **Website:** [andromux.org](https://andromux.org/)  
-📺 **YouTube:** [@andromux](https://youtube.com/@andromux)  
-💻 **GitHub:** [github.com/andromux](https://github.com/andromux)
+🌐 <b>Website:</b> [andromux.org](https://andromux.org/)  
+📺 <b>YouTube:</b> [@andromux](https://youtube.com/@andromux)  
+💻 <b>GitHub:</b> [github.com/andromux](https://github.com/andromux)
 
 **© 2025 Andromux** | Hecho con ❤️ para la comunidad
 
