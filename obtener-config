@@ -2,7 +2,7 @@
 
 # Script para descargar y configurar yt-dlp en Termux
 # Autor: AndromuxORG
-# Versión: 1.0
+# Versión: 1.1 - Sin verificación previa de conectividad
 
 set -e  # Salir si hay algún error
 
@@ -41,32 +41,6 @@ TEMP_FILE="/tmp/yt-dlp-config.tar.gz"
 print_status "Iniciando descarga de configuración yt-dlp para Termux..."
 print_status "Directorio destino: $HOME_DIR"
 
-# Función para probar conectividad
-test_url() {
-    local url="$1"
-    local name="$2"
-    print_status "Probando conectividad con $name..."
-    
-    if curl -s --head --connect-timeout 10 "$url" | head -n 1 | grep -q "200 OK"; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-# Determinar la mejor URL
-DOWNLOAD_URL=""
-if test_url "$JSDELIVR_URL" "jsDelivr CDN"; then
-    DOWNLOAD_URL="$JSDELIVR_URL"
-    print_success "Usando jsDelivr CDN (más rápido)"
-elif test_url "$GITHUB_URL" "GitHub directo"; then
-    DOWNLOAD_URL="$GITHUB_URL"
-    print_warning "Usando GitHub directo (jsDelivr no disponible)"
-else
-    print_error "No se puede conectar a ninguna fuente. Verifica tu conexión a internet."
-    exit 1
-fi
-
 # Crear backup si existe configuración previa
 if [ -f "$HOME_DIR/.config/yt-dlp.conf" ]; then
     print_warning "Configuración existente encontrada"
@@ -75,13 +49,21 @@ if [ -f "$HOME_DIR/.config/yt-dlp.conf" ]; then
     print_success "Backup creado: $BACKUP_FILE"
 fi
 
-# Descargar archivo
-print_status "Descargando configuración desde: $DOWNLOAD_URL"
-if curl -L --progress-bar --connect-timeout 30 --max-time 300 -o "$TEMP_FILE" "$DOWNLOAD_URL"; then
-    print_success "Descarga completada"
+# Intentar descargar desde jsdelivr CDN primero, luego GitHub
+print_status "Intentando descarga desde jsDelivr CDN..."
+if curl -L --progress-bar --connect-timeout 30 --max-time 300 -o "$TEMP_FILE" "$JSDELIVR_URL" 2>/dev/null; then
+    print_success "Descarga completada desde jsDelivr CDN"
+    DOWNLOAD_SOURCE="jsDelivr CDN"
 else
-    print_error "Error en la descarga"
-    exit 1
+    print_warning "jsDelivr CDN no disponible, intentando GitHub directo..."
+    if curl -L --progress-bar --connect-timeout 30 --max-time 300 -o "$TEMP_FILE" "$GITHUB_URL"; then
+        print_success "Descarga completada desde GitHub directo"
+        DOWNLOAD_SOURCE="GitHub directo"
+    else
+        print_error "Error en la descarga desde ambas fuentes"
+        print_error "Verifica tu conexión a internet y que las URLs sean accesibles"
+        exit 1
+    fi
 fi
 
 # Verificar que el archivo se descargó correctamente
@@ -89,6 +71,8 @@ if [ ! -f "$TEMP_FILE" ] || [ ! -s "$TEMP_FILE" ]; then
     print_error "El archivo descargado está vacío o no existe"
     exit 1
 fi
+
+print_status "Fuente de descarga utilizada: $DOWNLOAD_SOURCE"
 
 # Verificar que es un archivo tar válido
 if ! tar -tzf "$TEMP_FILE" >/dev/null 2>&1; then
